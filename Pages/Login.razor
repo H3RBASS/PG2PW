@@ -1,0 +1,155 @@
+@layout LoginLayout
+@page "/"
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject IJSRuntime JS // Necesitamos JSInterop para llamar a Firebase JS SDK
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Iniciar Sesión con Firebase</h2>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">
+                @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">
+                @successMessage
+            </div>
+        }
+        
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <label>Correo Electrónico (Usuario)</label>
+                <InputText @bind-Value="loginModel.Username" class="form-control" placeholder="Ingrese su correo electrónico" />
+                <ValidationMessage For="@(() => loginModel.Username)" />
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <InputText type="password" @bind-Value="loginModel.Password" class="form-control" placeholder="••••••••" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+
+            <button type="submit" class="btn-login" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Verificando...</span>
+                }
+                else
+                {
+                    <span>Iniciar Sesión</span>
+                }
+            </button>
+        </EditForm>
+        
+        <div class="info-section">
+            <p><strong>Nota:</strong> Este login utiliza **Firebase Authentication**. Asegúrese de usar correos electrónicos registrados.</p>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-secondary" @onclick="GoToHome">Ir a Home</button>
+        </div>
+
+        
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string errorMessage = "";
+    private string successMessage = "";
+    private bool isLoading = false;
+
+    // Modelo para el resultado del JSInterop
+    public class FirebaseLoginResult
+    {
+        public bool Success { get; set; }
+        public string Uid { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty; // Código de error de Firebase
+        public string Message { get; set; } = string.Empty; // Mensaje de error
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = "";
+            successMessage = "";
+            StateHasChanged();
+
+            // 1. Llamar a la función JS que usa el SDK de Firebase
+            var result = await JS.InvokeAsync<FirebaseLoginResult>("firebaseLogin", 
+                loginModel.Username, loginModel.Password);
+
+            if (result.Success)
+            {
+                // LOGIN EXITOSO
+                successMessage = $"¡Bienvenido {result.Email}!";
+                
+                // 2. Guardar información de sesión (UID de Firebase) en localStorage
+                await JS.InvokeVoidAsync("localStorage.setItem", "firebaseUid", result.Uid);
+                await JS.InvokeVoidAsync("localStorage.setItem", "firebaseEmail", result.Email);
+                await JS.InvokeVoidAsync("localStorage.setItem", "isAuthenticated", "true"); // Marcar como autenticado
+
+                StateHasChanged();
+
+                // 3. Redirigir
+                await Task.Delay(1000);
+                Navigation.NavigateTo("/dashboard", true);
+            }
+            else
+            {
+                // LOGIN FALLIDO
+                errorMessage = GetFriendlyErrorMessage(result.Code);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error interno: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToHome()
+    {
+        Navigation.NavigateTo("/home");
+    }
+
+    // Traduce los códigos de error de Firebase a mensajes amigables
+    private string GetFriendlyErrorMessage(string errorCode)
+    {
+        return errorCode switch
+        {
+            "auth/user-not-found" => "El usuario no existe.",
+            "auth/wrong-password" => "Contraseña incorrecta.",
+            "auth/invalid-email" => "El formato del correo electrónico es inválido.",
+            _ => $"Error de autenticación: {errorCode}",
+        };
+    }
+
+    // MODELO DEL FORMULARIO (Username ahora representa el Correo Electrónico)
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "El correo electrónico es requerido")]
+        [EmailAddress(ErrorMessage = "Debe ser un correo electrónico válido")]
+        public string Username { get; set; } = ""; // Renombrado a Email en Firebase
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")] // Requisito mínimo de Firebase
+        public string Password { get; set; } = "";
+    }
+}
