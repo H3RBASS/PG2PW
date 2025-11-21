@@ -1,0 +1,165 @@
+﻿@page "/venta"
+@using Proyecto.Models
+@inject ProductoService ProductoService
+@inject IJSRuntime JS
+
+<PageTitle>Productos en Venta</PageTitle>
+
+<div class="header-section">
+    <h1>🛒 Catálogo de Productos</h1>
+    <p class="subtitle">Lista de artículos disponibles para la venta.</p>
+</div>
+
+<hr />
+
+@if (productos == null)
+{
+    <div class="loading-message">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Cargando productos...
+    </div>
+}
+else if (!productos.Any())
+{
+    <div class="alert alert-warning">
+        No se encontraron productos en el inventario.
+    </div>
+}
+else
+{
+    <div class="product-grid">
+        @foreach (var producto in productos)
+        {
+            <div class="product-card">
+                <h3>@producto.Nombre</h3>
+                <p class="description">@producto.Descripcion</p>
+                <div class="price-section">
+                    <span class="price">@producto.Precio.ToString("C", new System.Globalization.CultureInfo("es-CO"))</span>
+                </div>
+                <div class="stock-info">
+                    Stock: <span class="@(producto.Stock > 10 ? "stock-high" : "stock-low")">@producto.Stock</span> unidades
+                </div>
+                <button class="btn-add-cart" @onclick="() => AgregarAlCarrito(producto.Id, producto.Nombre)" 
+                        disabled="@(producto.Stock == 0)">
+                    @(producto.Stock == 0 ? "Agotado" : "Añadir al Carrito")
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    // Definimos la lista de productos que cargaremos
+    private List<Producto>? productos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Llama al servicio para obtener los datos
+            productos = await ProductoService.GetProductosAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores simple (puedes mejorarlo)
+            Console.WriteLine($"Error al cargar productos: {ex.Message}");
+            productos = new List<Producto>(); // Inicializar como vacío para no mostrar el loading
+        }
+    }
+
+    private async Task AgregarAlCarrito(int productoId, string nombre)
+    {
+        // Aquí iría tu lógica para añadir el producto a un carrito de compras
+        // Por ahora, solo mostraremos una notificación
+        await JS.InvokeVoidAsync("alert", $"'{nombre}' (ID: {productoId}) agregado al carrito.");
+    }
+}
+
+<style>
+    /* Estilos para el componente Venta.razor */
+    .header-section {
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .subtitle {
+        color: #6c757d;
+    }
+    .loading-message {
+        text-align: center;
+        padding: 50px;
+        font-size: 1.2em;
+        color: #007bff;
+    }
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+        padding: 20px 0;
+    }
+    .product-card {
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    .product-card h3 {
+        color: #333;
+        font-size: 1.5em;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #eee;
+        padding-bottom: 10px;
+    }
+    .description {
+        color: #666;
+        margin-bottom: 15px;
+        flex-grow: 1;
+    }
+    .price-section {
+        margin-bottom: 15px;
+        text-align: right;
+    }
+    .price {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .stock-info {
+        font-size: 0.9em;
+        color: #888;
+        margin-bottom: 15px;
+    }
+    .stock-high {
+        color: green;
+        font-weight: bold;
+    }
+    .stock-low {
+        color: orange;
+        font-weight: bold;
+    }
+    .btn-add-cart {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1em;
+        margin-top: auto; /* Empuja el botón hacia abajo */
+    }
+    .btn-add-cart:hover:not(:disabled) {
+        background-color: #0056b3;
+    }
+    .btn-add-cart:disabled {
+        background-color: #dc3545;
+        cursor: not-allowed;
+    }
+</style>
