@@ -1,0 +1,108 @@
+# ===============================
+# CONFIGURACIÓN DE USUARIO
+# ===============================
+# Ver usuario configurado
+git config --global user.name
+git config --global user.email
+
+# Configurar usuario
+git config --global user.name "TU_USUARIO"
+git config --global user.email "TU_CORREO"
+
+# Eliminar usuario configurado
+git config --global --unset user.name
+git config --global --unset user.email
+
+# ===============================
+# CREAR Y CLONAR REPOS
+# ===============================
+# Clonar un repositorio
+git clone https://github.com/USUARIO/REPO.git
+
+# Crear una rama nueva
+git branch nombre_rama
+git checkout -b nombre_rama
+
+# ===============================
+# CAMBIOS Y COMMITS
+# ===============================
+# Ver estado de archivos
+git status
+
+# Agregar archivos al staging
+git add archivo.txt
+git add .
+
+# Hacer commit
+git commit -m "Mensaje del commit"
+
+# Ver historial de commits
+git log
+git log --oneline
+
+# ===============================
+# TRABAJAR CON RAMAS
+# ===============================
+# Cambiar de rama
+git checkout nombre_rama
+
+# Fusionar ramas en la actual
+git merge nombre_rama
+
+# ===============================
+# MANEJO DE REMOTOS
+# ===============================
+# Ver repositorios remotos
+git remote -v
+
+# Añadir remoto
+git remote add origin URL_DEL_REPO
+
+# Hacer push
+git push origin main
+git push origin nombre_rama
+
+# Push forzado (reescribe historial)
+git push origin main --force
+
+# Borrar rama remota
+git push origin --delete nombre_rama
+
+# ===============================
+# RESET, REVERT Y DESHACER
+# ===============================
+# Volver a un commit específico (hard reset)
+git reset --hard HASH_COMMIT
+
+# Revertir un commit creando un nuevo commit
+git revert HASH_COMMIT
+
+# ===============================
+# CREDENCIALES Y SESIONES
+# ===============================
+# Listar credenciales en Windows
+cmdkey /list | findstr github
+
+# Borrar credenciales de GitHub
+cmdkey /delete:git:https://github.com
+git credential-manager-core erase
+
+# ===============================
+# SSH
+# ===============================
+# Probar conexión SSH
+ssh -T git@github.com
+
+# ===============================
+# UTILIDADES
+# ===============================
+# Ver diferencias en archivos
+git diff
+
+# Ver ramas
+git branch
+git branch -a
+
+# ===============================
+# FIN DEL ARCHIVO
+# ===============================
