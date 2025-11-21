@@ -1,0 +1,37 @@
+@using Proyecto.Models
+@inject Proyecto.Services.CartService CartService
+
+<div class="group bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transform transition duration-300 hover:-translate-y-1">
+    <img class="w-full h-44 object-cover group-hover:scale-105 transition duration-300" src="@Product.ImageUrl" alt="@Product.Name" />
+    <div class="p-4 flex flex-col h-40">
+        <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-800">@Product.Name</h3>
+            <p class="text-sm text-gray-500 mt-1">@Product.Category</p>
+        </div>
+        <div class="mt-3 flex items-center justify-between">
+            <div class="text-indigo-600 font-semibold">@Product.Price.ToString("C", System.Globalization.CultureInfo.CurrentCulture)</div>
+            <div class="flex items-center gap-2">
+                <button class="inline-flex items-center px-3 py-1.5 bg-[#1b6ec2] text-white rounded text-sm hover:bg-[#1861ac] transition" @onclick="Add">Agregar</button>
+                <button class="inline-flex items-center px-2 py-1 border rounded text-sm text-gray-600 hover:bg-gray-100" @onclick="Open">Ver</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Product Product { get; set; }
+
+    [Parameter]
+    public EventCallback<Product> OnView { get; set; }
+
+    private void Add()
+    {
+        CartService.Add(Product);
+    }
+
+    private Task Open()
+    {
+        return OnView.InvokeAsync(Product);
+    }
+}

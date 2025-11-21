@@ -1,7 +1,168 @@
 ﻿@page "/home"
 
-<PageTitle> Home </PageTitle>
+@using Proyecto.Models
+@using Proyecto.Components
+@inject Proyecto.Services.CartService CartService
+@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager
 
-<h1>Hello, world!</h1>
+<PageTitle>Microshop</PageTitle>
 
-Welcome to your new app.
+<header class="bg-white shadow-sm">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+		<div class="flex items-center space-x-3">
+			<div class="text-2xl font-bold text-[#1b6ec2]">Microshop</div>
+			<div class="text-sm text-gray-500">Tienda · Productos seleccionados</div>
+		</div>
+		<div class="flex items-center space-x-3">
+			<a class="text-blue-600 hover:underline hidden sm:inline" href="/categories">Categorías</a>
+
+			<a class="relative inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 rounded-md text-white bg-[#1b6ec2] hover:bg-[#1861ac]" href="/cart" aria-label="Carrito">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon">
+					<path d="M7 4h-2l-1 2v2h2l3.6 7.59-1.35 2.45A1 1 0 0 0 9 20h10v-2H9.42a.25.25 0 0 1-.23-.15L9 17h7a1 1 0 0 0 .94-.69l1.5-5A1 1 0 0 0 17.5 10H8.21" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+				<span class="ml-2">Carrito</span>
+				<span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-white text-[#1b6ec2] rounded-full">@cartCount</span>
+			</a>
+
+			<button class="flex items-center space-x-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md px-2 py-1" @onclick="OpenProfile">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="icon-user" xmlns="http://www.w3.org/2000/svg">
+					<path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM2 22a10 10 0 0 1 20 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+				<span class="font-medium">@userName</span>
+			</button>
+		</div>
+	</div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+	<section class="bg-gradient-to-r from-[#1b6ec2] to-[#258cfb] rounded-lg p-8 text-white mb-8">
+		<div class="md:flex md:items-center md:justify-between">
+			<div>
+				<h1 class="text-3xl font-semibold">Bienvenido a Microshop</h1>
+				<p class="mt-2 text-white/90">Calidad y confianza en cada compra. Descubre productos seleccionados.</p>
+			</div>
+			<div class="mt-4 md:mt-0">
+				<a href="#shop" class="inline-block bg-white text-[#1b6ec2] font-semibold px-5 py-3 rounded shadow hover:opacity-95">Ver productos</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="mb-6">
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+			<div class="flex items-center gap-3 w-full sm:w-auto">
+				<input @bind="searchTerm" @bind:event="oninput" placeholder="Buscar productos..." class="w-full sm:w-72 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#1b6ec2]" />
+				<select @bind="selectedSort" class="px-3 py-2 border rounded focus:outline-none">
+					<option value="newest">Más relevantes</option>
+					<option value="price_asc">Precio: bajo a alto</option>
+					<option value="price_desc">Precio: alto a bajo</option>
+				</select>
+			</div>
+
+			<div class="flex items-center gap-2 overflow-x-auto">
+				<button class="px-3 py-1 rounded-full bg-gray-100 text-sm" @onclick="() => SelectCategory(null)">Todas</button>
+				@foreach (var c in categories)
+				{
+					<button class="px-3 py-1 rounded-full text-sm @(selectedCategory==c?"bg-[#1b6ec2] text-white":"bg-gray-100 text-gray-700")" @onclick="() => SelectCategory(c)">@c</button>
+				}
+			</div>
+		</div>
+	</section>
+
+	<section id="shop" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+		@if (filtered.Count == 0)
+		{
+			<div class="col-span-full text-center text-gray-500 py-10">No se encontraron productos.</div>
+		}
+		else
+		{
+			@foreach (var p in filtered)
+			{
+					<ProductCard Product="p" OnView="ViewProduct" />
+				}
+		}
+	</section>
+
+	@if (showModal && selectedProduct != null)
+	{
+		<ProductModal Product="selectedProduct" OnClose="CloseModal" />
+	}
+</main>
+
+@code {
+	private string userName = "Manuel";
+	private int cartCount = 0;
+
+	private List<Product> products = new()
+	{
+		new Product{ Id=1, Name="Auriculares inalámbricos", Price=59.99m, ImageUrl="https://via.placeholder.com/640x400?text=Auriculares", Description="Auriculares Bluetooth con cancelación de ruido.", Category="Audio" },
+		new Product{ Id=2, Name="Altavoz Bluetooth", Price=89.50m, ImageUrl="https://via.placeholder.com/640x400?text=Altavoz", Description="Altavoz portátil con 12h de batería.", Category="Audio" },
+		new Product{ Id=3, Name="Reloj inteligente", Price=129.00m, ImageUrl="https://via.placeholder.com/640x400?text=Reloj", Description="Reloj con monitor de frecuencia cardíaca.", Category="Wearables" },
+		new Product{ Id=4, Name="Cargador portátil", Price=24.75m, ImageUrl="https://via.placeholder.com/640x400?text=Cargador", Description="Batería externa 10.000 mAh.", Category="Accesorios" },
+		new Product{ Id=5, Name="Teclado mecánico", Price=79.99m, ImageUrl="https://via.placeholder.com/640x400?text=Teclado", Description="Teclado compact con switches táctiles.", Category="Periféricos" },
+		new Product{ Id=6, Name="Cámara compacta", Price=299.00m, ImageUrl="https://via.placeholder.com/640x400?text=Cámara", Description="Cámara con zoom óptico 10x.", Category="Cámaras" }
+	};
+
+	private List<string> categories => products.Select(p => p.Category).Distinct().ToList();
+
+	private string searchTerm = string.Empty;
+	private string selectedSort = "newest";
+	private string selectedCategory = null;
+
+	private List<Product> filtered => ApplyFilters();
+
+	private bool showModal = false;
+	private Product selectedProduct;
+
+	protected override void OnInitialized()
+	{
+		cartCount = CartService.GetCount();
+		CartService.OnChange += CartChanged;
+	}
+
+	private void CartChanged() => InvokeAsync(() => { cartCount = CartService.GetCount(); StateHasChanged(); });
+
+	private void SelectCategory(string cat)
+	{
+		selectedCategory = cat;
+	}
+
+	private List<Product> ApplyFilters()
+	{
+		IEnumerable<Product> q = products;
+		if (!string.IsNullOrWhiteSpace(searchTerm)) q = q.Where(p => p.Name.Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase) || (p.Description ?? "").Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase));
+		if (!string.IsNullOrEmpty(selectedCategory)) q = q.Where(p => p.Category == selectedCategory);
+
+		q = selectedSort switch
+		{
+			"price_asc" => q.OrderBy(p => p.Price),
+			"price_desc" => q.OrderByDescending(p => p.Price),
+			_ => q
+		};
+
+		return q.ToList();
+	}
+
+	private Task ViewProduct(Product p)
+	{
+		selectedProduct = p;
+		showModal = true;
+		return Task.CompletedTask;
+	}
+
+	private Task CloseModal()
+	{
+		showModal = false;
+		selectedProduct = null;
+		return Task.CompletedTask;
+	}
+
+	private void OpenProfile()
+	{
+		NavigationManager.NavigateTo("/login");
+	}
+
+	public void Dispose()
+	{
+		CartService.OnChange -= CartChanged;
+	}
+}
