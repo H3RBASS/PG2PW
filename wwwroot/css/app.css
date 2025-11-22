@@ -101,3 +101,12 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.bg-dark     { background-color: #272727; }
+.bg-acent   { background-color: #D4AA7D; }
+.bg-light    { background-color: #EFD09E; }
+
+.text-dark   { color: #272727; }
+.text-acent { color: #D4AA7D; }
+.text-light  { color: #EFD09E; }
+
