@@ -1,11 +1,27 @@
-    <!-- NAVBAR -->
-    <nav class="bg-blue-700 text-white p-4 shadow-md">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Mi Web</h1>
-            <div class="space-x-4">
-                <a href="/" class="px-3 py-1 hover:bg-blue-600 rounded">Home</a>
-                <a href="/about" class="px-3 py-1 hover:bg-blue-600 rounded">About</a>
-                <a href="/contact" class="px-3 py-1 hover:bg-blue-600 rounded">Contact</a>
-            </div>
-        </div>
-    </nav>
+<nav class="bg-black/20 backdrop-blur-md text-white px-6 py-3 shadow-md rounded-full max-w-7xl mx-auto">
+
+  <div class="flex justify-between items-center">
+    
+    <!-- LOGO -->
+    <img class="w-14 h-14 drop-shadow-lg" src="images/logo.svg" alt="Logo">
+
+    <!-- Checkbox para menú móvil -->
+    <input type="checkbox" id="menu-toggle" class="hidden peer">
+
+    <!-- ICONO HAMBURGUESA -->
+    <label for="menu-toggle" class="cursor-pointer lg:hidden text-2xl">
+      ☰
+    </label>
+
+    <!-- MENÚ -->
+    <div
+      class="hidden peer-checked:flex lg:flex flex-col lg:flex-row gap-2 lg:gap-4 absolute lg:static top-20 left-0 right-0
+       lg:bg-transparent p-4 lg:p-0 rounded-xl text-center lg:text-left font-sans">
+      <a href="/" class="px-3 py-1 hover:underline rounded transition">Home</a>
+      <a href="/about" class="px-3 py-1 hover:underline rounded transition">About</a>
+      <a href="/contact" class="px-3 py-1 hover:underline rounded transition">Contact</a>
+    </div>
+
+  </div>
+
+</nav>

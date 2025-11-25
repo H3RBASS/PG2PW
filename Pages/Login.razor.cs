@@ -55,7 +55,7 @@ namespace Proyecto.Pages
 
                     // 3. Redirigir
                     await Task.Delay(1000);
-                    Navigation.NavigateTo("/dashboard", true);
+                    Navigation.NavigateTo("/tienda", true);
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace Proyecto.Pages
 
         private void GoToHome()
         {
-            Navigation.NavigateTo("/home");
+            Navigation.NavigateTo("/tienda", true);
         }
 
         // Traduce los códigos de error de Firebase a mensajes amigables

@@ -1,0 +1,533 @@
+@page "/tienda"
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#2c1d74] to-[#654fd1] text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-store text-white"></i>
+                    </div>
+                    <span class="text-2xl font-bold">VioletaShop</span>
+                </div>
+
+                <!-- Cart & Search -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative hidden md:block">
+                        <input type="text" 
+                               placeholder="Buscar productos..." 
+                               @bind="filters.SearchTerm"
+                               @oninput="OnSearch"
+                               class="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl pl-10 pr-4 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 w-64" />
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70"></i>
+                    </div>
+                    
+                    <button class="relative p-2 hover:bg-white/10 rounded-xl transition-colors duration-200"
+                            @onclick="ToggleCart">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        @if (cartItems.Count > 0)
+                        {
+                            <span class="absolute -top-1 -right-1 bg-[#b977fe] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-semibold">
+                                @cartItems.Sum(x => x.Quantity)
+                            </span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar Filters -->
+            <div class="lg:w-80 flex-shrink-0">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Filtros</h3>
+
+                    <!-- Categories -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-700 mb-3">Categorías</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3 cursor-pointer group">
+                                <input type="radio" name="category" value="all" 
+                                       checked="@(filters.Category == "all")"
+                                       @onchange="@(() => OnCategoryChange("all"))"
+                                       class="text-[#8d51f3] focus:ring-[#8d51f3]" />
+                                <span class="text-gray-600 group-hover:text-gray-900">Todas</span>
+                            </label>
+                            @foreach (var category in categories)
+                            {
+                                <label class="flex items-center space-x-3 cursor-pointer group">
+                                    <input type="radio" name="category" value="@category" 
+                                           checked="@(filters.Category == category)"
+                                           @onchange="@(() => OnCategoryChange(category))"
+                                           class="text-[#8d51f3] focus:ring-[#8d51f3]" />
+                                    <span class="text-gray-600 group-hover:text-gray-900">@category</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-700 mb-3">Precio</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-600">Máximo: $@filters.MaxPrice</label>
+                                <input type="range" min="0" max="1000" step="10" 
+                                       value="@filters.MaxPrice"
+                                       @onchange="OnPriceChange"
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#8d51f3]" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-700 mb-3">Ordenar por</h4>
+                        <select @onchange="OnSortChange"
+                                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#8d51f3] focus:border-transparent">
+                            <option value="name" selected="@(filters.SortBy == "name")">Nombre A-Z</option>
+                            <option value="name_desc" selected="@(filters.SortBy == "name_desc")">Nombre Z-A</option>
+                            <option value="price" selected="@(filters.SortBy == "price")">Precio: Menor a Mayor</option>
+                            <option value="price_desc" selected="@(filters.SortBy == "price_desc")">Precio: Mayor a Menor</option>
+                            <option value="rating" selected="@(filters.SortBy == "rating")">Mejor Valorados</option>
+                        </select>
+                    </div>
+
+                    <button @onclick="ResetFilters"
+                            class="w-full bg-gray-100 text-gray-700 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200">
+                        Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <!-- Stats -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-[#2c1d74]">@FilteredProducts.Count</div>
+                            <div class="text-gray-600 text-sm">Productos</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-[#654fd1]">@(categories.Count)</div>
+                            <div class="text-gray-600 text-sm">Categorías</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-[#8d51f3]">@FilteredProducts.Count(x => x.IsNew)</div>
+                            <div class="text-gray-600 text-sm">Nuevos</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-[#b977fe]">@FilteredProducts.Count(x => x.IsFeatured)</div>
+                            <div class="text-gray-600 text-sm">Destacados</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    @foreach (var product in FilteredProducts)
+                    {
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                            <div class="relative overflow-hidden">
+                                <img src="@product.Image" alt="@product.Name" 
+                                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+                                
+                                <!-- Badges -->
+                                <div class="absolute top-3 left-3 flex flex-col space-y-2">
+                                    @if (product.IsNew)
+                                    {
+                                        <span class="bg-[#b977fe] text-white text-xs px-2 py-1 rounded-full font-semibold">NUEVO</span>
+                                    }
+                                    @if (product.IsFeatured)
+                                    {
+                                        <span class="bg-[#8d51f3] text-white text-xs px-2 py-1 rounded-full font-semibold">DESTACADO</span>
+                                    }
+                                    @if (product.OriginalPrice.HasValue)
+                                    {
+                                        <span class="bg-[#654fd1] text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            -@((int)((1 - product.Price / product.OriginalPrice.Value) * 100))%
+                                        </span>
+                                    }
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:text-[#8d51f3] shadow-lg hover:shadow-xl transition-all duration-200">
+                                        <i class="far fa-heart text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4">
+                                <span class="text-xs text-[#654fd1] font-semibold uppercase tracking-wide">@product.Category</span>
+                                <h3 class="font-semibold text-gray-900 mt-1 mb-2 line-clamp-2 group-hover:text-[#2c1d74] transition-colors duration-200">@product.Name</h3>
+                                <p class="text-sm text-gray-600 mb-3 line-clamp-2">@product.Description</p>
+                                
+                                <!-- Rating -->
+                                <div class="flex items-center mb-3">
+                                    <div class="flex items-center">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="fas fa-star @(i <= product.Rating ? "text-yellow-400" : "text-gray-300") text-sm"></i>
+                                        }
+                                    </div>
+                                    <span class="text-xs text-gray-500 ml-2">(@product.ReviewCount)</span>
+                                </div>
+                                
+                                <!-- Price & Add to Cart -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-lg font-bold text-[#2c1d74]">$@product.Price.ToString("N2")</span>
+                                        @if (product.OriginalPrice.HasValue)
+                                        {
+                                            <span class="text-sm text-gray-500 line-through">$@product.OriginalPrice.Value.ToString("N2")</span>
+                                        }
+                                    </div>
+                                    
+                                    <button @onclick="() => AddToCart(product)"
+                                            class="bg-gradient-to-r from-[#8d51f3] to-[#b977fe] text-white px-4 py-2 rounded-xl font-semibold hover:from-[#7a45e0] hover:to-[#a866e9] transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled="@(!product.InStock)">
+                                        <i class="fas fa-shopping-cart text-sm"></i>
+                                        <span class="hidden sm:inline">Agregar</span>
+                                    </button>
+                                </div>
+                                
+                                @if (!product.InStock)
+                                {
+                                    <div class="mt-2 text-xs text-rose-600 font-medium">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Agotado
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Empty State -->
+                @if (FilteredProducts.Count == 0)
+                {
+                    <div class="text-center py-12">
+                        <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No se encontraron productos</h3>
+                        <p class="text-gray-500 mb-4">Intenta ajustar tus filtros de búsqueda</p>
+                        <button @onclick="ResetFilters"
+                                class="bg-[#8d51f3] text-white px-6 py-2 rounded-xl font-medium hover:bg-[#7a45e0] transition-colors duration-200">
+                            Ver todos los productos
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shopping Cart Sidebar -->
+@if (showCart)
+{
+    <div class="fixed inset-0 z-50 overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" @onclick="ToggleCart"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex">
+            <div class="relative w-screen max-w-md">
+                <div class="h-full flex flex-col bg-white shadow-xl">
+                    <div class="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
+                        <div class="flex items-start justify-between">
+                            <h2 class="text-lg font-medium text-gray-900">Carrito de Compras</h2>
+                            <button @onclick="ToggleCart" class="text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div class="mt-8">
+                            @if (cartItems.Count > 0)
+                            {
+                                <div class="flow-root">
+                                    <ul class="-my-6 divide-y divide-gray-200">
+                                        @foreach (var item in cartItems)
+                                        {
+                                            <li class="py-6 flex">
+                                                <div class="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
+                                                    <img src="@item.Product.Image" alt="@item.Product.Name" class="w-full h-full object-center object-cover">
+                                                </div>
+
+                                                <div class="ml-4 flex-1 flex flex-col">
+                                                    <div>
+                                                        <div class="flex justify-between text-base font-medium text-gray-900">
+                                                            <h3>@item.Product.Name</h3>
+                                                            <p class="ml-4">$@((item.Product.Price * item.Quantity).ToString("N2"))</p>
+                                                        </div>
+                                                        <p class="mt-1 text-sm text-gray-500">@item.Product.Category</p>
+                                                    </div>
+                                                    <div class="flex-1 flex items-end justify-between text-sm">
+                                                        <div class="flex items-center space-x-2">
+                                                            <button @onclick="() => UpdateQuantity(item.Product, -1)"
+                                                                    class="text-gray-400 hover:text-gray-500 w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg">
+                                                                <i class="fas fa-minus text-xs"></i>
+                                                            </button>
+                                                            <span class="mx-2 text-gray-900">@item.Quantity</span>
+                                                            <button @onclick="() => UpdateQuantity(item.Product, 1)"
+                                                                    class="text-gray-400 hover:text-gray-500 w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg">
+                                                                <i class="fas fa-plus text-xs"></i>
+                                                            </button>
+                                                        </div>
+
+                                                        <button @onclick="() => RemoveFromCart(item.Product)"
+                                                                class="font-medium text-[#8d51f3] hover:text-[#7a45e0]">
+                                                            Eliminar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-12">
+                                    <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                                    <p class="text-gray-500">Tu carrito está vacío</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (cartItems.Count > 0)
+                    {
+                        <div class="border-t border-gray-200 py-6 px-4 sm:px-6">
+                            <div class="flex justify-between text-base font-medium text-gray-900 mb-4">
+                                <p>Subtotal</p>
+                                <p>$@cartItems.Sum(x => x.Product.Price * x.Quantity).ToString("N2")</p>
+                            </div>
+                            <p class="mt-0.5 text-sm text-gray-500">Envío e impuestos calculados al finalizar.</p>
+                            <div class="mt-6">
+                                <button class="w-full bg-[#8d51f3] border border-transparent rounded-xl py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-[#7a45e0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8d51f3]">
+                                    Finalizar Compra
+                                </button>
+                            </div>
+                            <div class="mt-6 flex justify-center text-sm text-center text-gray-500">
+                                <p>
+                                    o <button @onclick="ToggleCart" class="text-[#8d51f3] font-medium hover:text-[#7a45e0]">Seguir comprando<span aria-hidden="true"> &rarr;</span></button>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Product> products = new();
+    private List<CartItem> cartItems = new();
+    private List<string> categories = new();
+    private FilterModel filters = new();
+    private bool showCart = false;
+
+    protected override void OnInitialized()
+    {
+        LoadProducts();
+        categories = products.Select(p => p.Category).Distinct().OrderBy(c => c).ToList();
+    }
+
+    private void LoadProducts()
+    {
+        products = new List<Product>
+        {
+            new Product {
+                Id = 1,
+                Name = "Auriculares Inalámbricos",
+                Description = "Sonido premium con cancelación de ruido",
+                Price = 199.99m,
+                OriginalPrice = 249.99m,
+                Image = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
+                Category = "Electrónicos",
+                Rating = 4.5,
+                ReviewCount = 128,
+                IsFeatured = true,
+                IsNew = true,
+                Tags = new List<string> {"inalámbrico", "audio", "premium"}
+            },
+            new Product {
+                Id = 2,
+                Name = "Smartwatch Deportivo",
+                Description = "Monitorización avanzada de actividad",
+                Price = 299.99m,
+                Image = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop",
+                Category = "Electrónicos",
+                Rating = 4.3,
+                ReviewCount = 89,
+                IsFeatured = true,
+                Tags = new List<string> {"deporte", "smart", "monitor"}
+            },
+            new Product {
+                Id = 3,
+                Name = "Cámara Mirrorless",
+                Description = "Fotografía profesional en formato compacto",
+                Price = 899.99m,
+                OriginalPrice = 1099.99m,
+                Image = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&h=300&fit=crop",
+                Category = "Electrónicos",
+                Rating = 4.8,
+                ReviewCount = 45,
+                IsNew = true,
+                Tags = new List<string> {"fotografía", "profesional", "4k"}
+            },
+            new Product {
+                Id = 4,
+                Name = "Mochila Urbana",
+                Description = "Diseño moderno y funcional para el día a día",
+                Price = 79.99m,
+                Image = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop",
+                Category = "Accesorios",
+                Rating = 4.2,
+                ReviewCount = 203,
+                Tags = new List<string> {"urbano", "estilo", "práctico"}
+            },
+            new Product {
+                Id = 5,
+                Name = "Reloj Minimalista",
+                Description = "Elegante y sofisticado para ocasiones especiales",
+                Price = 149.99m,
+                Image = "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=400&h=300&fit=crop",
+                Category = "Accesorios",
+                Rating = 4.6,
+                ReviewCount = 67,
+                IsFeatured = true,
+                Tags = new List<string> {"elegante", "minimalista", "lujo"}
+            },
+            new Product {
+                Id = 6,
+                Name = "Lámpara de Escritorio LED",
+                Description = "Iluminación ajustable para trabajo y estudio",
+                Price = 49.99m,
+                Image = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
+                Category = "Hogar",
+                Rating = 4.4,
+                ReviewCount = 156,
+                IsNew = true,
+                Tags = new List<string> {"LED", "ajustable", "moderno"}
+            }
+        };
+    }
+
+    private List<Product> FilteredProducts
+    {
+        get
+        {
+            var filtered = products.AsEnumerable();
+
+            // Search filter
+            if (!string.IsNullOrEmpty(filters.SearchTerm))
+            {
+                filtered = filtered.Where(p => 
+                    p.Name.Contains(filters.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    p.Description.Contains(filters.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    p.Tags.Any(t => t.Contains(filters.SearchTerm, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            // Category filter
+            if (filters.Category != "all")
+            {
+                filtered = filtered.Where(p => p.Category == filters.Category);
+            }
+
+            // Price filter
+            filtered = filtered.Where(p => p.Price <= filters.MaxPrice);
+
+            // Sort
+            filtered = filters.SortBy switch
+            {
+                "name_desc" => filtered.OrderByDescending(p => p.Name),
+                "price" => filtered.OrderBy(p => p.Price),
+                "price_desc" => filtered.OrderByDescending(p => p.Price),
+                "rating" => filtered.OrderByDescending(p => p.Rating),
+                _ => filtered.OrderBy(p => p.Name)
+            };
+
+            return filtered.ToList();
+        }
+    }
+
+    private void OnSearch(ChangeEventArgs e)
+    {
+        filters.SearchTerm = e.Value?.ToString() ?? "";
+        StateHasChanged();
+    }
+
+    private void OnCategoryChange(string category)
+    {
+        filters.Category = category;
+        StateHasChanged();
+    }
+
+    private void OnPriceChange(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out decimal value))
+        {
+            filters.MaxPrice = value;
+            StateHasChanged();
+        }
+    }
+
+    private void OnSortChange(ChangeEventArgs e)
+    {
+        filters.SortBy = e.Value?.ToString() ?? "name";
+        StateHasChanged();
+    }
+
+    private void ResetFilters()
+    {
+        filters = new FilterModel();
+        StateHasChanged();
+    }
+
+    private void ToggleCart()
+    {
+        showCart = !showCart;
+    }
+
+    private void AddToCart(Product product)
+    {
+        var existingItem = cartItems.FirstOrDefault(x => x.Product.Id == product.Id);
+        if (existingItem != null)
+        {
+            existingItem.Quantity++;
+        }
+        else
+        {
+            cartItems.Add(new CartItem { Product = product, Quantity = 1 });
+        }
+        StateHasChanged();
+    }
+
+    private void RemoveFromCart(Product product)
+    {
+        var item = cartItems.FirstOrDefault(x => x.Product.Id == product.Id);
+        if (item != null)
+        {
+            cartItems.Remove(item);
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateQuantity(Product product, int change)
+    {
+        var item = cartItems.FirstOrDefault(x => x.Product.Id == product.Id);
+        if (item != null)
+        {
+            item.Quantity += change;
+            if (item.Quantity <= 0)
+            {
+                cartItems.Remove(item);
+            }
+        }
+        StateHasChanged();
+    }
+}
