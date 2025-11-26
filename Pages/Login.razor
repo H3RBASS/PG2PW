@@ -1,5 +1,5 @@
 @layout LoginLayout
-@page "/"
+@page "/" 
 <PageTitle>Login</PageTitle>
 <div class="min-h-screen flex items-center justify-center">
     <div class="relative w-full max-w-md"> 
@@ -15,7 +15,7 @@
                         </svg>
                     </div>
                 </div>
-                <h2 class="text-2xl font-semibold text-white" style="text-shadow: 2px 2px 1px #8c54f4;">Login</h2>
+                <h2 class="text-2xl font-semibold text-white" style="text-shadow: 2px 2px 1px #8c54f4;">Iniciar Sesion</h2>
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
@@ -50,7 +50,8 @@
                     <ValidationMessage For="@(() => loginModel.Password)" />
                 </div>
 
-                <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-violet-500 text-white rounded-lg shadow-md transform transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 text-lg font-semibold btn-animated" disabled="@isLoading">
+                <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-violet-500 text-white rounded-lg 
+                shadow-md transform transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 text-lg font-semibold btn-animated" disabled="@isLoading">
                     @if (isLoading)
                     {
                         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -70,7 +71,10 @@
                 <NavLink class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" href="/tienda">
                     Ir a Inicio
                 </NavLink>
-
+                
+                <NavLink class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" href="/registro">
+                    Ir a Registro
+                </NavLink>
             </div>
              <Footer/>
         </div>

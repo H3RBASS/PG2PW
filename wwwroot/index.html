@@ -37,52 +37,65 @@
 <script>
     // Tu configuración de Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyAxh5OqfvzUIG2Esx--yqHvIa9j_kfrCdQ",
-        authDomain: "storecambatech.firebaseapp.com",
-        projectId: "storecambatech",
-        storageBucket: "...",
-        messagingSenderId: "...",
-        appId: "...",
+    apiKey: "AIzaSyC5mEzjGvZvfNmo4zHZ_bI2by9q0U4U4JQ",
+    authDomain: "camba-tech.firebaseapp.com",
+    projectId: "camba-tech",
+    storageBucket: "camba-tech.firebasestorage.app",
+    messagingSenderId: "507373365590",
+    appId: "1:507373365590:web:478293acd0a02b8adbcef7",
+    measurementId: "G-0HLPNE5XJ2"
     };
+    // 3. Inicializar Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    // Inicializa Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = app.auth();
 
-    // ----------------------------------------------------
-    // FUNCIÓN DE LOGIN QUE BLazor LLAMARÁ
-    // ----------------------------------------------------
-    window.firebaseLogin = async (username, password) => {
-        try {
-            const userCredential = await auth.signInWithEmailAndPassword(username, password);
-            
-            // Retorna un objeto simple con información del usuario
-            return {
-                success: true,
-                uid: userCredential.user.uid,
-                email: userCredential.user.email
-            };
-        } catch (error) {
-            // Retorna un objeto con el código de error
-            return {
-                success: false,
-                code: error.code,
-                message: error.message
-            };
-        }
-    };
 
-    // ----------------------------------------------------
-    // FUNCIÓN DE LOGOUT QUE BLazor LLAMARÁ
-    // ----------------------------------------------------
-    window.firebaseLogout = async () => {
-        try {
-            await auth.signOut();
-            return { success: true };
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
-    };
+
+
+
+  window.getProductos = async () => {
+    try {
+      const snapshot = await db.collection("productos").get();
+      
+      // Convertimos los documentos de Firebase a un arreglo simple para Blazor
+      let lista = [];
+      snapshot.forEach(doc => {
+        let data = doc.data();
+        data.Id = doc.id; // Guardamos el ID del documento por si acaso
+        lista.push(data);
+      });
+      
+      return lista;
+    } catch (error) {
+      console.error("Error leyendo inventario:", error);
+      return [];
+    }
+  };
+  // 4. Funciones que llamará Blazor (window.NombreFuncion)
+  
+  // FUNCIÓN PARA CREAR CUENTA (La que sale en el video)
+  window.createAccount = async (email, password) => {
+    try {
+      await auth.createUserWithEmailAndPassword(email, password);
+      return true; // Retorna true si fue exitoso
+    } catch (error) {
+      console.error(error);
+      return false; // Retorna false si hubo error
+    }
+  };
+
+  // FUNCIÓN PARA LOGIN (Extra: Misma lógica pero para iniciar sesión)
+  window.loginUser = async (email, password) => {
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
 </script>
 </body>
 

@@ -1,0 +1,148 @@
+@layout LoginLayout
+@page "/registro"
+@using System.ComponentModel.DataAnnotations
+@using Proyecto.Models 
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
+
+<div class="min-h-screen flex items-center justify-center">
+    <div class="relative w-full max-w-md"> 
+       <div class="card bg-black/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 overflow-hidden animate-fadeInUp border-0">
+            <div class="flex flex-col items-center justify-center mb-6">
+                <div class="logo relative mb-3">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-900 to-violet-500 flex items-center justify-center
+                     text-white shadow-lg">
+                        <!-- User icon centered -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 20c0-3.3137 2.6863-6 6-6h4c3.3137 0 6 2.6863 6 6" />
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-semibold text-white" style="text-shadow: 2px 2px 1px #8c54f4;">Registro</h2>
+            </div>
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegistration">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <InputText @bind-Value="registerModel.Email" class="form-control input-field w-full px-4 py-3 bg-gray-50 border
+                         border-gray-200 rounded-lg text-lg focus:outline-none transition focus:shadow-md focus:ring-2 focus:ring-purple-400" />
+                <ValidationMessage For="@(() => registerModel.Email)" />
+                <div class="mt-2 text-base text-white" style="text-shadow: 2px 2px 1px #8c54f4;">
+                    <label>Correo Electrónico</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <InputText @bind-Value="registerModel.Password" type="password" class="form-control input-field w-full px-4 py-3 bg-gray-50 border
+                         border-gray-200 rounded-lg text-lg focus:outline-none transition focus:shadow-md focus:ring-2 focus:ring-purple-400" />
+                <ValidationMessage For="@(() => registerModel.Password)" />
+                 <div class="mt-2 text-base text-white" style="text-shadow: 2px 2px 1px #8c54f4;">
+                    <label>Contraseña</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <InputText @bind-Value="registerModel.ConfirmPassword" type="password" class="form-control input-field w-full px-4 py-3 bg-gray-50 border
+                         border-gray-200 rounded-lg text-lg focus:outline-none transition focus:shadow-md focus:ring-2 focus:ring-purple-400" />
+                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                 <div class="mt-2 text-base text-white" style="text-shadow: 2px 2px 1px #8c54f4;">
+                    <label>Confirmar Contraseña</label>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-violet-500 text-white rounded-lg 
+                shadow-md transform transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60 text-lg font-semibold btn-animated" disabled="@isBusy">
+                @(isBusy ? "Creando cuenta..." : "Registrarse")
+            </button>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-2">@errorMessage</div>
+            }
+        </EditForm>
+
+            <div class="mt-4 flex justify-center">
+                <NavLink class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" href="/tienda">
+                    Ir a Inicio
+                </NavLink>
+                
+                 <NavLink class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" href="/registro">
+                    Ir a Registro
+                </NavLink>
+                <NavLink class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition" href="/">
+                    Ir a Login
+                </NavLink>
+            </div>
+             <Footer/>
+        </div>
+    </div>
+</div>
+
+<div class="relative w-full max-w-md"> 
+    <h3>Crear Nueva Cuenta</h3>
+    <div class="card-body">
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegistration">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label>Correo Electrónico</label>
+                <InputText @bind-Value="registerModel.Email" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Email)" />
+            </div>
+
+            <div class="mb-3">
+                <label>Contraseña</label>
+                <InputText @bind-Value="registerModel.Password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.Password)" />
+            </div>
+
+            <div class="mb-3">
+                <label>Confirmar Contraseña</label>
+                <InputText @bind-Value="registerModel.ConfirmPassword" type="password" class="form-control" />
+                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100" disabled="@isBusy">
+                @(isBusy ? "Creando cuenta..." : "Registrarse")
+            </button>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-2">@errorMessage</div>
+            }
+        </EditForm>
+        
+        <div class="mt-2 text-center">
+            <small>¿Ya tienes cuenta? <a href="/">Inicia sesión aquí</a></small>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+    private bool isBusy = false;
+    private string errorMessage = "";
+
+    private async Task HandleRegistration()
+    {
+        isBusy = true;
+        errorMessage = "";
+
+        // Llamamos a la función de JS 'createAccount' que definimos en index.html
+        // (Asegúrate de haber copiado el script del paso 1 de mi respuesta anterior)
+        var creadoConExito = await JSRuntime.InvokeAsync<bool>("createAccount", registerModel.Email, registerModel.Password);
+
+        if (creadoConExito)
+        {
+            // Si se crea correctamente, redirigimos al login o al home
+            NavManager.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = "Error al crear la cuenta. El correo podría estar en uso.";
+        }
+
+        isBusy = false;
+    }
+}

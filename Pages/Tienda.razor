@@ -7,10 +7,10 @@
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <i class="fas fa-store text-white"></i>
+                    <div class="size-14 bg-white/60 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <img src="images/logo.svg" alt="">
                     </div>
-                    <span class="text-2xl font-bold">VioletaShop</span>
+                    <span class="text-2xl font-mono">CambaTech</span>
                 </div>
 
                 <!-- Cart & Search -->
@@ -106,7 +106,8 @@
 
             <!-- Main Content -->
             <div class="flex-1">
-                <!-- Stats -->
+                <!-- Stats 
+                
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="text-center">
@@ -127,6 +128,7 @@
                         </div>
                     </div>
                 </div>
+                -->
 
                 <!-- Products Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -157,7 +159,8 @@
 
                                 <!-- Actions -->
                                 <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:text-[#8d51f3] shadow-lg hover:shadow-xl transition-all duration-200">
+                                    <button class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center
+                                     text-gray-600 hover:text-[#8d51f3] shadow-lg hover:shadow-xl transition-all duration-200">
                                         <i class="far fa-heart text-sm"></i>
                                     </button>
                                 </div>
@@ -168,16 +171,6 @@
                                 <h3 class="font-semibold text-gray-900 mt-1 mb-2 line-clamp-2 group-hover:text-[#2c1d74] transition-colors duration-200">@product.Name</h3>
                                 <p class="text-sm text-gray-600 mb-3 line-clamp-2">@product.Description</p>
                                 
-                                <!-- Rating -->
-                                <div class="flex items-center mb-3">
-                                    <div class="flex items-center">
-                                        @for (int i = 1; i <= 5; i++)
-                                        {
-                                            <i class="fas fa-star @(i <= product.Rating ? "text-yellow-400" : "text-gray-300") text-sm"></i>
-                                        }
-                                    </div>
-                                    <span class="text-xs text-gray-500 ml-2">(@product.ReviewCount)</span>
-                                </div>
                                 
                                 <!-- Price & Add to Cart -->
                                 <div class="flex items-center justify-between">
@@ -189,13 +182,15 @@
                                         }
                                     </div>
                                     
+                                </div>
+                                    <!-- Boton Agregar -->
                                     <button @onclick="() => AddToCart(product)"
-                                            class="bg-gradient-to-r from-[#8d51f3] to-[#b977fe] text-white px-4 py-2 rounded-xl font-semibold hover:from-[#7a45e0] hover:to-[#a866e9] transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            class="bg-gradient-to-r from-[#8d51f3] to-[#b977fe] text-white px-4 py-2 rounded-xl font-semibold hover:from-[#7a45e0] hover:to-[#a866e9] 
+                                            transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                             disabled="@(!product.InStock)">
                                         <i class="fas fa-shopping-cart text-sm"></i>
                                         <span class="hidden sm:inline">Agregar</span>
                                     </button>
-                                </div>
                                 
                                 @if (!product.InStock)
                                 {
@@ -344,7 +339,7 @@
                 Name = "Auriculares Inalámbricos",
                 Description = "Sonido premium con cancelación de ruido",
                 Price = 199.99m,
-                OriginalPrice = 249.99m,
+                //OriginalPrice = 249.99m,
                 Image = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
                 Category = "Electrónicos",
                 Rating = 4.5,
@@ -370,7 +365,7 @@
                 Name = "Cámara Mirrorless",
                 Description = "Fotografía profesional en formato compacto",
                 Price = 899.99m,
-                OriginalPrice = 1099.99m,
+                //OriginalPrice = 1099.99m,
                 Image = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&h=300&fit=crop",
                 Category = "Electrónicos",
                 Rating = 4.8,
